@@ -1,5 +1,7 @@
 package com.darwindev.ratp;
 
+import com.google.gson.Gson;
+import com.google.gson.stream.JsonWriter;
 import org.apache.commons.lang3.StringUtils;
 
 import java.io.*;
@@ -22,7 +24,7 @@ public class GTFSParser {
     public static double distance(double lat1, double lat2, double lon1,
                                   double lon2, double el1, double el2) {
 
-        final int R = 6371; // Radius of the earth
+        final double R = 6371.0; // Radius of the earth
 
         double latDistance = Math.toRadians(lat2 - lat1);
         double lonDistance = Math.toRadians(lon2 - lon1);
@@ -44,9 +46,7 @@ public class GTFSParser {
         String[] metroLines = {
                 "METRO_1", "METRO_2", "METRO_3", "METRO_3b", "METRO_4", "METRO_5",
                 "METRO_6", "METRO_7", "METRO_7b", "METRO_8", "METRO_9", "METRO_10",
-                "METRO_11", "METRO_12", "METRO_13", "METRO_14", "RER_A", "RER_B",
-                "TRAM_T1", "TRAM_T2", "TRAM_T3a", "TRAM_T3b", "TRAM_T5", "TRAM_T6",
-                "TRAM_T7", "TRAM_T8",
+                "METRO_11", "METRO_12", "METRO_13", "METRO_14"
         };
 
         // original id -> new id
@@ -73,7 +73,7 @@ public class GTFSParser {
                 String longitude = lineData[5];
                 if (!stopNames.contains(stopName)) {
                     stopNames.add(stopName);
-                    HashMap<String, String> stopDetail = new HashMap<>();
+                    HashMap<String, Object> stopDetail = new HashMap<>();
                     stopDetail.put("name", stopName);
                     stopDetail.put("latitude", latitude);
                     stopDetail.put("longitude", longitude);
@@ -103,6 +103,13 @@ public class GTFSParser {
             }
         });
         writer1.close();
+
+
+        FileWriter jsonWriter = new FileWriter("data-output/stop-detail.json");
+        Gson gson = new Gson();
+        String json = gson.toJson(stopMap);
+        jsonWriter.write(json);
+        jsonWriter.close();
 
         // get sequences
         Integer seqCount = 0;
@@ -164,7 +171,7 @@ public class GTFSParser {
             validSequences.get(metroLine).addAll(stopSeqSet);
             System.out.println("parsed: " + fileName + ", " + stopSeqSet.size() + " sequences.");
         }
-        System.out.println("all sequences parsed, " + seqCount.toString() + "sequences in total.");
+        System.out.println("all sequences parsed, " + seqCount.toString() + " sequences in total.");
 
         FileWriter writer2 = new FileWriter("data-output/valid-sequence.txt");
         validSequences.forEach((s, arrayLists) -> {
@@ -210,9 +217,6 @@ public class GTFSParser {
             }
         });
         writer3.close();
-
-        EdgeWeightedGraph graph = new EdgeWeightedGraph("data-output/edge.txt");
-        graph.print();
 
     }
 
