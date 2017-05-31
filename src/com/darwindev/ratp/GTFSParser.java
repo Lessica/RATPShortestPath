@@ -1,5 +1,7 @@
 package com.darwindev.ratp;
 
+import org.apache.commons.lang3.StringUtils;
+
 import java.io.*;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -15,7 +17,7 @@ public class GTFSParser {
      *
      * lat1, lon1 Start point lat2, lon2 End point el1 Start altitude in meters
      * el2 End altitude in meters
-     * @returns Distance in Meters
+     * @return Distance in Meters
      */
     public static double distance(double lat1, double lat2, double lon1,
                                   double lon2, double el1, double el2) {
@@ -40,9 +42,11 @@ public class GTFSParser {
     public static void main(String[] args) throws IOException {
 
         String[] metroLines = {
-                "1", "2", "3", "3b", "4", "5",
-                "6", "7", "7b", "8", "9", "10",
-                "11", "12", "13", "14"
+                "METRO_1", "METRO_2", "METRO_3", "METRO_3b", "METRO_4", "METRO_5",
+                "METRO_6", "METRO_7", "METRO_7b", "METRO_8", "METRO_9", "METRO_10",
+                "METRO_11", "METRO_12", "METRO_13", "METRO_14", "RER_A", "RER_B",
+                "TRAM_T1", "TRAM_T2", "TRAM_T3a", "TRAM_T3b", "TRAM_T5", "TRAM_T6",
+                "TRAM_T7", "TRAM_T8",
         };
 
         // original id -> new id
@@ -55,7 +59,7 @@ public class GTFSParser {
         Integer stopIdIndex = 0;
         HashSet<String> stopNames = new HashSet<>();
         for (String metroLine : metroLines) {
-            String fileName = "dataset-metro/RATP_GTFS_METRO_" + metroLine + "/stops.txt";
+            String fileName = "data-input/RATP_GTFS_" + metroLine + "/stops.txt";
             FileInputStream stream = new FileInputStream(fileName);
             InputStreamReader streamReader = new InputStreamReader(stream);
             BufferedReader reader = new BufferedReader(streamReader);
@@ -64,7 +68,7 @@ public class GTFSParser {
             String line;
             while ((line = reader.readLine()) != null) {
                 String[] lineData = CSVUtils.parseLine(line).toArray(new String[0]);
-                String stopName = lineData[2];
+                String stopName = StringUtils.stripAccents(lineData[2]).toUpperCase();
                 String latitude = lineData[4];
                 String longitude = lineData[5];
                 if (!stopNames.contains(stopName)) {
@@ -101,12 +105,13 @@ public class GTFSParser {
         writer1.close();
 
         // get sequences
+        Integer seqCount = 0;
         HashMap<String, ArrayList<ArrayList<String>>> validSequences = new HashMap<>();
         for (String metroLine : metroLines) {
             validSequences.put(metroLine, new ArrayList<>());
             // trip id -> route id
             HashMap<String, String> tripRouteRel = new HashMap<>();
-            String fileName1 = "dataset-metro/RATP_GTFS_METRO_" + metroLine + "/trips.txt";
+            String fileName1 = "data-input/RATP_GTFS_" + metroLine + "/trips.txt";
             FileInputStream stream1 = new FileInputStream(fileName1);
             InputStreamReader streamReader1 = new InputStreamReader(stream1);
             BufferedReader reader1 = new BufferedReader(streamReader1);
@@ -122,7 +127,7 @@ public class GTFSParser {
             HashSet<String> visitedRoute = new HashSet<>();
             HashSet<ArrayList<String>> stopSeqSet = new HashSet<>();
             HashMap<String, ArrayList<String>> stopSeqRel = new HashMap<>();
-            String fileName = "dataset-metro/RATP_GTFS_METRO_" + metroLine + "/stop_times.txt";
+            String fileName = "data-input/RATP_GTFS_" + metroLine + "/stop_times.txt";
             FileInputStream stream = new FileInputStream(fileName);
             InputStreamReader streamReader = new InputStreamReader(stream);
             BufferedReader reader = new BufferedReader(streamReader);
@@ -150,15 +155,16 @@ public class GTFSParser {
                 }
                 if (!stopSeqSet.contains(newSeq)) {
                     stopSeqSet.add(newSeq);
-                    System.out.println(newSeq);
                 }
             });
             reader.close();
             streamReader.close();
             stream.close();
+            seqCount += stopSeqSet.size();
             validSequences.get(metroLine).addAll(stopSeqSet);
             System.out.println("parsed: " + fileName + ", " + stopSeqSet.size() + " sequences.");
         }
+        System.out.println("all sequences parsed, " + seqCount.toString() + "sequences in total.");
 
         FileWriter writer2 = new FileWriter("data-output/valid-sequence.txt");
         validSequences.forEach((s, arrayLists) -> {
@@ -197,7 +203,7 @@ public class GTFSParser {
                 double lon1 = Double.parseDouble((String) stop1.get("longitude"));
                 double lat2 = Double.parseDouble((String) stop2.get("latitude"));
                 double lon2 = Double.parseDouble((String) stop2.get("longitude"));
-                double dis = distance(lat1, lat2, lon1, lon2, 0, 0);
+                double dis = distance(lat1, lat2, lon1, lon2, 33, 33); // Paris Altitude - 33m
                 writer3.write(s + " " + Double.toString(dis) +  "\n");
             } catch (IOException e) {
                 e.printStackTrace();
