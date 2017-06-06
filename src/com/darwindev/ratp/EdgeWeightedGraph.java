@@ -27,8 +27,12 @@ public class EdgeWeightedGraph {
         List<String> lines = Files.readAllLines(Paths.get(filePath),
                 StandardCharsets.UTF_8);
         HashSet<Integer> set = new HashSet<>();
+        Integer lineIndex = 0;
         for (String line : lines) {
-            String[] nodesId = line.trim().split("\\s+");
+            lineIndex++;
+            if (lineIndex == 1) continue;
+//            String[] nodesId = line.trim().split("\\s+");
+            String[] nodesId = CSVUtils.parseLine(line).toArray(new String[0]);
             if (nodesId.length >= 2) {
                 set.add(Integer.parseInt(nodesId[0]));
                 set.add(Integer.parseInt(nodesId[1]));
@@ -40,8 +44,12 @@ public class EdgeWeightedGraph {
         adj = new LinkedList[size];
         for (int i = 0; i < size; ++i)
             addVertex(i);
+        lineIndex = 0;
         for (String line : lines) {
-            String[] nodesId = line.split("\\s+");
+            lineIndex++;
+            if (lineIndex == 1) continue;
+//            String[] nodesId = line.split("\\s+");
+            String[] nodesId = CSVUtils.parseLine(line).toArray(new String[0]);
             if (nodesId.length == 2) {
                 addEdge(new Edge(Integer.parseInt(nodesId[0]), Integer.parseInt(nodesId[1]), 1));
             } else if (nodesId.length == 3) {

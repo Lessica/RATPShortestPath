@@ -2,7 +2,6 @@ package com.darwindev.ratp;
 
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
-import com.sun.corba.se.impl.orbutil.graph.Graph;
 
 import java.io.FileReader;
 import java.io.IOException;
@@ -34,9 +33,7 @@ public class BFSShortestPath {
         distance = aBFSShortestPath.distance;
     }
 
-    // The function to do BFS traversal.
-    public ArrayList<Integer> parse(EdgeWeightedGraph G, int s) {
-        sourceNode = s;
+    public ArrayList<ArrayList<Integer>> bfsAll(EdgeWeightedGraph G) {
         int v = G.getNodeCount() + 1;
         marked = new boolean[v];
         edgeTo = new Edge[v];
@@ -45,6 +42,17 @@ public class BFSShortestPath {
             edgeTo[i] = null; // UNDEFINED
             distance[i] = Integer.MAX_VALUE; // +INFINITY
         }
+        ArrayList<ArrayList<Integer>> result = new ArrayList<>();
+        for (int i = 0; i < v - 1; i++) {
+            if (!marked[i]) {
+                result.add(parse(G, i));
+            }
+        }
+        return result;
+    }
+
+    private ArrayList<Integer> parse(EdgeWeightedGraph G, int s) {
+        sourceNode = s;
         // Use an array list to record visit orders.
         ArrayList<Integer> visitOrder = new ArrayList<>();
         // Perform search algorithm without recursive calls.
@@ -79,6 +87,19 @@ public class BFSShortestPath {
         return visitOrder;
     }
 
+    // The function to do BFS traversal.
+    public ArrayList<Integer> bfs(EdgeWeightedGraph G, int s) {
+        int v = G.getNodeCount() + 1;
+        marked = new boolean[v];
+        edgeTo = new Edge[v];
+        distance = new int[v];
+        for (int i = 0; i < v; i++) {
+            edgeTo[i] = null; // UNDEFINED
+            distance[i] = Integer.MAX_VALUE; // +INFINITY
+        }
+        return parse(G, s);
+    }
+
     public boolean hasPathTo(int v) {
         return marked[v];
     }
@@ -105,7 +126,8 @@ public class BFSShortestPath {
     }
 
     public static boolean isConnectedGraph(EdgeWeightedGraph G) {
-        return new BFSShortestPath().parse(G, 0).size() == G.getNodeCount();
+        Integer total = new BFSShortestPath().bfs(G, 0).size();
+        return total == G.getNodeCount();
     }
 
     public static void main(String[] args) throws IOException {
@@ -115,10 +137,10 @@ public class BFSShortestPath {
         Gson gson = new Gson();
         HashMap<Integer, Map> stopMap = gson.fromJson(reader, type);
 
-        EdgeWeightedGraph graph = new EdgeWeightedGraph("data-output/edge.txt");
+        EdgeWeightedGraph graph = new EdgeWeightedGraph("data-output/edge.csv");
 
         BFSShortestPath BFSShortestPath = new BFSShortestPath();
-        BFSShortestPath.parse(graph, 77);
+        BFSShortestPath.bfs(graph, 77);
         ArrayList<Integer> suggestedPath = BFSShortestPath.pathTo(67);
         System.out.println(suggestedPath);
         for (Integer stopId : suggestedPath) {

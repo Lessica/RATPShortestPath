@@ -77,6 +77,7 @@ public class GTFSParser {
                     stopDetail.put("name", stopName);
                     stopDetail.put("latitude", latitude);
                     stopDetail.put("longitude", longitude);
+                    stopDetail.put("degree", 0);
                     stopMap.put(stopIdIndex, stopDetail);
                     stopBiMap.put(stopName, stopIdIndex.toString());
                     // build relationship between new id and stop name
@@ -93,17 +94,6 @@ public class GTFSParser {
             System.out.println("parsed: " + fileName + ", " + (stopIdIndex - beforeIdIndex) + " stops.");
         }
         System.out.println("all stops parsed, " + stopNames.size() + " stops in total.");
-
-        FileWriter writer1 = new FileWriter("data-output/stop-rel.txt");
-        stopMap.forEach((s1, s2) -> {
-            try {
-                writer1.write(s1 + "," + s2.get("name") + "," + s2.get("latitude") + "," + s2.get("longitude") + "\n");
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
-        });
-        writer1.close();
-
 
         FileWriter jsonWriter = new FileWriter("data-output/stop-detail.json");
         Gson gson = new Gson();
@@ -173,6 +163,40 @@ public class GTFSParser {
         }
         System.out.println("all sequences parsed, " + seqCount.toString() + " sequences in total.");
 
+        // build link between nodes
+        HashSet<String> linkedEdge = new HashSet<>();
+        for (String metroLine : metroLines) {
+            ArrayList<ArrayList<String>> validSequence = validSequences.get(metroLine);
+            for (ArrayList<String> validSeq : validSequence) {
+                for (int i = 0; i < validSeq.size() - 1; i++) {
+                    String strId1 = validSeq.get(i);
+                    String strId2 = validSeq.get(i + 1);
+                    String str1 = strId1 + " " + strId2;
+                    String str2 = strId2 + " " + strId1;
+                    if (!linkedEdge.contains(str1) && !linkedEdge.contains(str2)) {
+                        Integer id1 = Integer.parseInt(strId1);
+                        Integer id2 = Integer.parseInt(strId2);
+                        Integer stopDegree1 = (Integer) stopMap.get(id1).get("degree");
+                        stopMap.get(id1).put("degree", stopDegree1 + 1);
+                        Integer stopDegree2 = (Integer) stopMap.get(id2).get("degree");
+                        stopMap.get(id2).put("degree", stopDegree2 + 1);
+                        linkedEdge.add(str1);
+                    }
+                }
+            }
+        }
+
+        FileWriter writer1 = new FileWriter("data-output/stop-rel.csv");
+        writer1.write("stopId,stopName,stopLatitude,stopLongitude\n");
+        stopMap.forEach((s1, s2) -> {
+            try {
+                writer1.write(s1 + "," + s2.get("name") + "," + s2.get("degree") + "," + s2.get("latitude") + "," + s2.get("longitude") + "\n");
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        });
+        writer1.close();
+
         FileWriter writer2 = new FileWriter("data-output/valid-sequence.txt");
         validSequences.forEach((s, arrayLists) -> {
             try {
@@ -185,38 +209,41 @@ public class GTFSParser {
         });
         writer2.close();
 
-        // build link between nodes
-        HashSet<String> linkedEdge = new HashSet<>();
-        for (String metroLine : metroLines) {
-            ArrayList<ArrayList<String>> validSequence = validSequences.get(metroLine);
-            for (ArrayList<String> validSeq : validSequence) {
-                for (int i = 0; i < validSeq.size() - 1; i++) {
-                    String str1 = validSeq.get(i) + " " + validSeq.get(i + 1);
-                    String str2 = validSeq.get(i + 1) + " " + validSeq.get(i);
-                    if (!linkedEdge.contains(str1) && !linkedEdge.contains(str2)) {
-                        linkedEdge.add(str1);
-                    }
-                }
-            }
-        }
-
-        FileWriter writer3 = new FileWriter("data-output/edge.txt");
+        FileWriter writer3 = new FileWriter("data-output/edge.csv");
+        writer3.write("node1,node2,distance\n");
         linkedEdge.forEach(s -> {
             try {
                 String[] vw = s.split(" ");
-                Map stop1 = stopMap.get(Integer.parseInt(vw[0]));
-                Map stop2 = stopMap.get(Integer.parseInt(vw[1]));
+                Integer s1 = Integer.parseInt(vw[0]);
+                Integer s2 = Integer.parseInt(vw[1]);
+                Map stop1 = stopMap.get(s1);
+                Map stop2 = stopMap.get(s2);
                 double lat1 = Double.parseDouble((String) stop1.get("latitude"));
                 double lon1 = Double.parseDouble((String) stop1.get("longitude"));
                 double lat2 = Double.parseDouble((String) stop2.get("latitude"));
                 double lon2 = Double.parseDouble((String) stop2.get("longitude"));
                 double dis = distance(lat1, lat2, lon1, lon2, 33, 33); // Paris Altitude - 33m
-                writer3.write(s + " " + Double.toString(dis) +  "\n");
+                writer3.write(Integer.toString(s1) + "," + Integer.toString(s2) + "," + Double.toString(dis) +  "\n");
             } catch (IOException e) {
                 e.printStackTrace();
             }
         });
         writer3.close();
+
+//        LOAD CSV WITH HEADERS FROM "file:///stop-rel.csv" AS row
+//        CREATE (n:Stop)
+//        SET n = row
+//
+//        LOAD CSV WITH HEADERS FROM "file:///edge.csv" AS row
+//        CREATE (n:StopRel)
+//        SET n = row
+//
+//        CREATE INDEX ON :Stop(stopId)
+//        CREATE INDEX ON :StopRel(node1, node2)
+//
+//        MATCH (s1:Stop),(s2:Stop),(r:StopRel)
+//        WHERE s1.stopId = r.node1 AND s2.stopId = r.node2
+//        CREATE (s1)-[rel:LINK{distance:r.distance}]->(s2)
 
     }
 

@@ -21,8 +21,8 @@ public class BFSGraphCluster {
         BFSShortestPath bfsShortestPath = new BFSShortestPath();
         for (int i = 0; i < G.getNodeCount(); i++)
         {
-            bfsShortestPath.parse(G, i);
-            for (int j = 0; j < G.getNodeCount(); j++)
+            bfsShortestPath.bfs(G, i);
+            for (int j = i; j < G.getNodeCount(); j++)
             {
                 for (int t = j; t != i; t = bfsShortestPath.edgeTo(t).other(t)) {
                     bfsShortestPath.edgeTo(t).addBetweenness(1);
@@ -44,7 +44,7 @@ public class BFSGraphCluster {
         Gson gson = new Gson();
         HashMap<Integer, Map> stopMap = gson.fromJson(reader, type);
 
-        EdgeWeightedGraph graph = new EdgeWeightedGraph("data-output/edge.txt");
+        EdgeWeightedGraph graph = new EdgeWeightedGraph("data-output/edge.csv");
 
         BFSGraphCluster bfsGraphCluster = new BFSGraphCluster(graph);
         while (true) {
@@ -61,6 +61,12 @@ public class BFSGraphCluster {
                 }
                 bfsGraphCluster = new BFSGraphCluster(graph);
             }
+        }
+        System.out.println("Connected components: ");
+        BFSShortestPath shortestPath = new BFSShortestPath();
+        ArrayList<ArrayList<Integer>> bfsResultAll = shortestPath.bfsAll(graph);
+        for (ArrayList<Integer> bfsResult : bfsResultAll) {
+            System.out.println(bfsResult);
         }
 
     }

@@ -112,8 +112,7 @@ public class DijkstraSP {
         Gson gson = new Gson();
         HashMap<Integer, Map> stopMap = gson.fromJson(reader, type);
 
-        EdgeWeightedGraph graph = new EdgeWeightedGraph("data-output/edge.txt");
-        graph.print();
+        EdgeWeightedGraph graph = new EdgeWeightedGraph("data-output/edge.csv");
 
         DijkstraSP dijkstraSP = new DijkstraSP();
         dijkstraSP.parse(graph, 77);

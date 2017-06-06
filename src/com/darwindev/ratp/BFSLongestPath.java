@@ -6,8 +6,9 @@ import com.google.gson.reflect.TypeToken;
 import java.io.FileReader;
 import java.io.IOException;
 import java.lang.reflect.Type;
-import java.util.*;
-import java.util.function.Consumer;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Map;
 
 public class BFSLongestPath {
     private int diameter;
@@ -19,7 +20,7 @@ public class BFSLongestPath {
         BFSShortestPath bfsShortestPath = new BFSShortestPath();
         for (int i = 0; i < G.getNodeCount(); i++)
         {
-            bfsShortestPath.parse(G, i);
+            bfsShortestPath.bfs(G, i);
             int max = 0;
             for (int j = 0; j < G.getNodeCount(); j++)
             {
@@ -36,7 +37,7 @@ public class BFSLongestPath {
                 v = i;
             }
         }
-        bfsShortestPath.parse(G, v);
+        bfsShortestPath.bfs(G, v);
         longestPath = bfsShortestPath.pathTo(w);
     }
 
@@ -55,7 +56,7 @@ public class BFSLongestPath {
         Gson gson = new Gson();
         HashMap<Integer, Map> stopMap = gson.fromJson(reader, type);
 
-        EdgeWeightedGraph graph = new EdgeWeightedGraph("data-output/edge.txt");
+        EdgeWeightedGraph graph = new EdgeWeightedGraph("data-output/edge.csv");
 
         BFSLongestPath bfsLongestPath = new BFSLongestPath(graph);
 
