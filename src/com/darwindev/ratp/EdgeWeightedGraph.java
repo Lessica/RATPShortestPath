@@ -66,6 +66,16 @@ public class EdgeWeightedGraph {
         return adj[v];
     }
 
+    public Edge getEdge(int v, int w) {
+        LinkedList<Edge> source = getNode(v);
+        for (Edge edge : source) {
+            if (edge.other(v) == w) {
+                return edge;
+            }
+        }
+        return null;
+    }
+
     public int getNodeCount() {
         return nodeCount;
     }
@@ -86,13 +96,26 @@ public class EdgeWeightedGraph {
         return edges;
     }
 
+    public void removeEdge(Edge e) {
+        for (int i = 0; i < capacity; i++) {
+            if (adj[i] != null) {
+                for (Edge n : adj[i]) {
+                    if (n == e) {
+                        adj[i].remove(e);
+                        break;
+                    }
+                }
+            }
+        }
+    }
+
     // Print the whole graph
     public void print() {
         for (int i = 0; i < capacity; i++) {
             System.out.print(i + ": ");
             if (adj[i] != null) {
                 for (Edge n : adj[i]) {
-                    System.out.print("(" + Integer.toString(i) + ", " + Integer.toString(n.other(i)) + ", " + Double.toString(n.weight()) + "), ");
+                    System.out.print(n + ", ");
                 }
             }
             System.out.println();

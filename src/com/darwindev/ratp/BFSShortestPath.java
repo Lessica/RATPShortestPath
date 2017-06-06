@@ -2,6 +2,7 @@ package com.darwindev.ratp;
 
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
+import com.sun.corba.se.impl.orbutil.graph.Graph;
 
 import java.io.FileReader;
 import java.io.IOException;
@@ -12,22 +13,36 @@ import java.util.*;
  * Created by Zheng on 31/05/2017.
  *
  */
-public class BFSSP {
+public class BFSShortestPath {
 
     private int sourceNode;
     private boolean[] marked;
-    private int[] previous;
+    private Edge[] edgeTo;
     private int[] distance;
+
+    public BFSShortestPath() {
+        sourceNode = -1;
+        marked = null;
+        edgeTo = null;
+        distance = null;
+    }
+
+    public BFSShortestPath(BFSShortestPath aBFSShortestPath) {
+        sourceNode = aBFSShortestPath.sourceNode;
+        marked = aBFSShortestPath.marked;
+        edgeTo = aBFSShortestPath.edgeTo;
+        distance = aBFSShortestPath.distance;
+    }
 
     // The function to do BFS traversal.
     public ArrayList<Integer> parse(EdgeWeightedGraph G, int s) {
         sourceNode = s;
         int v = G.getNodeCount() + 1;
         marked = new boolean[v];
-        previous = new int[v];
+        edgeTo = new Edge[v];
         distance = new int[v];
         for (int i = 0; i < v; i++) {
-            previous[i] = -1; // UNDEFINED
+            edgeTo[i] = null; // UNDEFINED
             distance[i] = Integer.MAX_VALUE; // +INFINITY
         }
         // Use an array list to record visit orders.
@@ -40,7 +55,7 @@ public class BFSSP {
         // Put distance into queue (correspond to node)
         queue.add(s);
         marked[s] = true;
-        previous[s] = -1;
+        edgeTo[s] = null;
         distanceQueue.add(0);
         distance[s] = 0;
         while (!queue.isEmpty()) {
@@ -54,7 +69,7 @@ public class BFSSP {
                     queue.add(thisNode);
                     // Mark child node
                     marked[thisNode] = true;
-                    previous[thisNode] = node;
+                    edgeTo[thisNode] = childEdge;
                     // Update distance
                     distanceQueue.add(nodeDistance + 1);
                     distance[thisNode] = nodeDistance + 1;
@@ -64,20 +79,22 @@ public class BFSSP {
         return visitOrder;
     }
 
-    boolean hasPathTo(int v) {
+    public boolean hasPathTo(int v) {
         return marked[v];
     }
 
-    int distTo(int v) {
+    public int distTo(int v) {
         return distance[v];
     }
+
+    public Edge edgeTo(int v) { return edgeTo[v]; }
 
     public ArrayList<Integer> pathTo(int v) {
         ArrayList<Integer> shortestPath = new ArrayList<>();
         int thisNode = v;
         while (thisNode > -1) {
             shortestPath.add(thisNode);
-            thisNode = previous[thisNode];
+            thisNode = edgeTo[thisNode].other(thisNode);
             if (thisNode == sourceNode) {
                 shortestPath.add(sourceNode);
                 break;
@@ -85,6 +102,10 @@ public class BFSSP {
         }
         Collections.reverse(shortestPath);
         return shortestPath;
+    }
+
+    public static boolean isConnectedGraph(EdgeWeightedGraph G) {
+        return new BFSShortestPath().parse(G, 0).size() == G.getNodeCount();
     }
 
     public static void main(String[] args) throws IOException {
@@ -95,11 +116,10 @@ public class BFSSP {
         HashMap<Integer, Map> stopMap = gson.fromJson(reader, type);
 
         EdgeWeightedGraph graph = new EdgeWeightedGraph("data-output/edge.txt");
-        graph.print();
 
-        BFSSP bfssp = new BFSSP();
-        bfssp.parse(graph, 77);
-        ArrayList<Integer> suggestedPath = bfssp.pathTo(67);
+        BFSShortestPath BFSShortestPath = new BFSShortestPath();
+        BFSShortestPath.parse(graph, 77);
+        ArrayList<Integer> suggestedPath = BFSShortestPath.pathTo(67);
         System.out.println(suggestedPath);
         for (Integer stopId : suggestedPath) {
             Map stopDetail = stopMap.get(stopId);

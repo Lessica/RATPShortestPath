@@ -1,0 +1,101 @@
+package com.darwindev.ratp;
+
+import com.google.gson.Gson;
+import com.google.gson.reflect.TypeToken;
+
+import java.io.FileReader;
+import java.io.IOException;
+import java.lang.reflect.Type;
+import java.util.*;
+import java.util.function.Consumer;
+
+public class BFSLongestPath {
+    private int diameter;
+    private ArrayList<Integer> longestPath;
+    private HashSet<Edge> edgeSet;
+
+    public BFSLongestPath(EdgeWeightedGraph G)
+    {
+        edgeSet = new HashSet<>();
+        for (int i = 0; i < G.getNodeCount(); i++) {
+            edgeSet.addAll(G.getNode(i));
+        }
+        edgeSet.forEach(Edge::cleanBetweenness);
+        int v = -1, w = -1;
+        BFSShortestPath bfsShortestPath = new BFSShortestPath();
+        for (int i = 0; i < G.getNodeCount(); i++)
+        {
+            bfsShortestPath.parse(G, i);
+            int max = 0;
+            for (int j = 0; j < G.getNodeCount(); j++)
+            {
+                int dist = bfsShortestPath.distTo(j);
+                if (dist > max)
+                {
+                    max = dist;
+                    w = j;
+                }
+                for (int t = j; t != i; t = bfsShortestPath.edgeTo(t).other(t)) {
+                    bfsShortestPath.edgeTo(t).addBetweenness(1);
+                }
+            }
+            if (max > diameter)
+            {
+                diameter = max;
+                v = i;
+            }
+        }
+        bfsShortestPath.parse(G, v);
+        longestPath = bfsShortestPath.pathTo(w);
+    }
+
+    public int getDiameter() {
+        return diameter;
+    }
+
+    public ArrayList<Integer> getLongestPath() {
+        return longestPath;
+    }
+
+    public ArrayList<Edge> edgesSortByBetweenness() {
+        ArrayList<Edge> edgeArray = new ArrayList<>(edgeSet);
+        edgeArray.sort(new Comparator<Edge>() {
+            @Override
+            public int compare(Edge o1, Edge o2) {
+                return (o1.getBetweenness() < o2.getBetweenness()) ? 1 : -1;
+            }
+        });
+        return edgeArray;
+    }
+
+    public static void main(String[] args) throws IOException {
+
+        FileReader reader = new FileReader("data-output/stop-detail.json");
+        Type type = new TypeToken<HashMap<Integer, Map>>(){}.getType();
+        Gson gson = new Gson();
+        HashMap<Integer, Map> stopMap = gson.fromJson(reader, type);
+
+        EdgeWeightedGraph graph = new EdgeWeightedGraph("data-output/edge.txt");
+
+        BFSLongestPath bfsLongestPath = new BFSLongestPath(graph);
+
+        ArrayList<Integer> longestPath = bfsLongestPath.getLongestPath();
+        System.out.println("Diameter of the graph: " + bfsLongestPath.getDiameter());
+        System.out.println("Longest path: " + longestPath);
+        for (Integer stopId : longestPath) {
+            Map stopDetail = stopMap.get(stopId);
+            System.out.println(stopDetail.get("name"));
+        }
+        double totalLength = 0;
+        System.out.println("Lengths of sub-paths: ");
+        for (int i = 0; i < longestPath.size() - 1; i++) {
+            int vv = longestPath.get(i), ww = longestPath.get(i + 1);
+            Edge edge = graph.getEdge(vv, ww);
+            System.out.println(Integer.toString(vv) + "->" + Integer.toString(ww) + ": " + Double.toString(edge.weight()));
+            totalLength += edge.weight();
+        }
+        System.out.println("Total length of the path: " + Double.toString(totalLength));
+
+    }
+
+}
