@@ -89,10 +89,10 @@ public class BFSShortestPath {
 
     public Edge edgeTo(int v) { return edgeTo[v]; }
 
-    public ArrayList<Integer> pathTo(int v) {
+    public ArrayList<Integer> pathTo(int w) {
         ArrayList<Integer> shortestPath = new ArrayList<>();
-        int thisNode = v;
-        while (thisNode > -1) {
+        int thisNode = w;
+        while (thisNode > -1 && thisNode != sourceNode) {
             shortestPath.add(thisNode);
             thisNode = edgeTo[thisNode].other(thisNode);
             if (thisNode == sourceNode) {

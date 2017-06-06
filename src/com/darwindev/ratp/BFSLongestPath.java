@@ -12,15 +12,9 @@ import java.util.function.Consumer;
 public class BFSLongestPath {
     private int diameter;
     private ArrayList<Integer> longestPath;
-    private HashSet<Edge> edgeSet;
 
     public BFSLongestPath(EdgeWeightedGraph G)
     {
-        edgeSet = new HashSet<>();
-        for (int i = 0; i < G.getNodeCount(); i++) {
-            edgeSet.addAll(G.getNode(i));
-        }
-        edgeSet.forEach(Edge::cleanBetweenness);
         int v = -1, w = -1;
         BFSShortestPath bfsShortestPath = new BFSShortestPath();
         for (int i = 0; i < G.getNodeCount(); i++)
@@ -34,9 +28,6 @@ public class BFSLongestPath {
                 {
                     max = dist;
                     w = j;
-                }
-                for (int t = j; t != i; t = bfsShortestPath.edgeTo(t).other(t)) {
-                    bfsShortestPath.edgeTo(t).addBetweenness(1);
                 }
             }
             if (max > diameter)
@@ -55,17 +46,6 @@ public class BFSLongestPath {
 
     public ArrayList<Integer> getLongestPath() {
         return longestPath;
-    }
-
-    public ArrayList<Edge> edgesSortByBetweenness() {
-        ArrayList<Edge> edgeArray = new ArrayList<>(edgeSet);
-        edgeArray.sort(new Comparator<Edge>() {
-            @Override
-            public int compare(Edge o1, Edge o2) {
-                return (o1.getBetweenness() < o2.getBetweenness()) ? 1 : -1;
-            }
-        });
-        return edgeArray;
     }
 
     public static void main(String[] args) throws IOException {

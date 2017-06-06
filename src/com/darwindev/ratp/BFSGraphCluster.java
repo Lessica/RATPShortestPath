@@ -6,11 +6,37 @@ import com.google.gson.reflect.TypeToken;
 import java.io.FileReader;
 import java.io.IOException;
 import java.lang.reflect.Type;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.Map;
+import java.util.*;
 
 public class BFSGraphCluster {
+    private HashSet<Edge> edgeSet;
+
+    public BFSGraphCluster(EdgeWeightedGraph G)
+    {
+        edgeSet = new HashSet<>();
+        for (int i = 0; i < G.getNodeCount(); i++) {
+            edgeSet.addAll(G.getNode(i));
+        }
+        edgeSet.forEach(Edge::cleanBetweenness);
+        BFSShortestPath bfsShortestPath = new BFSShortestPath();
+        for (int i = 0; i < G.getNodeCount(); i++)
+        {
+            bfsShortestPath.parse(G, i);
+            for (int j = 0; j < G.getNodeCount(); j++)
+            {
+                for (int t = j; t != i; t = bfsShortestPath.edgeTo(t).other(t)) {
+                    bfsShortestPath.edgeTo(t).addBetweenness(1);
+                }
+            }
+        }
+    }
+
+    public ArrayList<Edge> edgesSortByBetweenness() {
+        ArrayList<Edge> edgeArray = new ArrayList<>(edgeSet);
+        edgeArray.sort((o1, o2) -> (o1.getBetweenness() < o2.getBetweenness()) ? 1 : -1);
+        return edgeArray;
+    }
+
     public static void main(String[] args) throws IOException {
 
         FileReader reader = new FileReader("data-output/stop-detail.json");
@@ -20,9 +46,9 @@ public class BFSGraphCluster {
 
         EdgeWeightedGraph graph = new EdgeWeightedGraph("data-output/edge.txt");
 
-        BFSLongestPath bfsBetweenness = new BFSLongestPath(graph);
+        BFSGraphCluster bfsGraphCluster = new BFSGraphCluster(graph);
         while (true) {
-            ArrayList<Edge> edgeSortByBetweenness = bfsBetweenness.edgesSortByBetweenness();
+            ArrayList<Edge> edgeSortByBetweenness = bfsGraphCluster.edgesSortByBetweenness();
             if (edgeSortByBetweenness.size() > 0) {
                 Edge e = edgeSortByBetweenness.get(0);
                 Map stopDetail1 = stopMap.get(e.either());
@@ -33,7 +59,7 @@ public class BFSGraphCluster {
                 {
                     break;
                 }
-                bfsBetweenness = new BFSLongestPath(graph);
+                bfsGraphCluster = new BFSGraphCluster(graph);
             }
         }
 
