@@ -24,8 +24,6 @@
 hs_err_pid*
 
 # project related-input/output
-data-output/
-data-input/
 .idea/
 out/
 bin/
