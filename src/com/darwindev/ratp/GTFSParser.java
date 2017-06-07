@@ -230,21 +230,6 @@ public class GTFSParser {
         });
         writer3.close();
 
-//        LOAD CSV WITH HEADERS FROM "file:///stop-rel.csv" AS row
-//        CREATE (n:Stop)
-//        SET n = row
-//
-//        LOAD CSV WITH HEADERS FROM "file:///edge.csv" AS row
-//        CREATE (n:StopRel)
-//        SET n = row
-//
-//        CREATE INDEX ON :Stop(stopId)
-//        CREATE INDEX ON :StopRel(node1, node2)
-//
-//        MATCH (s1:Stop),(s2:Stop),(r:StopRel)
-//        WHERE s1.stopId = r.node1 AND s2.stopId = r.node2
-//        CREATE (s1)-[rel:LINK{distance:r.distance}]->(s2)
-
     }
 
 }

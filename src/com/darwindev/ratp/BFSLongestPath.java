@@ -16,6 +16,7 @@ public class BFSLongestPath {
 
     public BFSLongestPath(EdgeWeightedGraph G)
     {
+        diameter = 0;
         int v = -1, w = -1;
         BFSShortestPath bfsShortestPath = new BFSShortestPath();
         for (int i = 0; i < G.getNodeCount(); i++)
