@@ -36,7 +36,7 @@ public class CSVUtils {
         for (char ch : chars) {
             if (inQuotes) {
                 startCollectChar = true;
-                if (ch == customQuote) {
+                if (ch == customQuote) {           //customQuote is a space;
                     inQuotes = false;
                     doubleQuotesInColumn = false;
                     curVal.append(ch);
