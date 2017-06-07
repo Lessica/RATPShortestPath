@@ -66,7 +66,7 @@ public class BFSGraphCluster {
         BFSShortestPath shortestPath = new BFSShortestPath();
         ArrayList<ArrayList<Integer>> bfsResultAll = shortestPath.bfsAll(graph);
         for (ArrayList<Integer> bfsResult : bfsResultAll) {
-            System.out.println(bfsResult);
+            System.out.println("\n" + bfsResult + ", length = " + bfsResult.size());
         }
 
     }

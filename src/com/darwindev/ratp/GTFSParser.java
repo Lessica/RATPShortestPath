@@ -187,7 +187,7 @@ public class GTFSParser {
         }
 
         FileWriter writer1 = new FileWriter("data-output/stop-rel.csv");
-        writer1.write("stopId,stopName,stopLatitude,stopLongitude\n");
+        writer1.write("stopId,stopName,stopDegree,stopLatitude,stopLongitude\n");
         stopMap.forEach((s1, s2) -> {
             try {
                 writer1.write(s1 + "," + s2.get("name") + "," + s2.get("degree") + "," + s2.get("latitude") + "," + s2.get("longitude") + "\n");

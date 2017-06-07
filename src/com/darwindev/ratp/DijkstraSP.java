@@ -115,8 +115,9 @@ public class DijkstraSP {
         EdgeWeightedGraph graph = new EdgeWeightedGraph("data-output/edge.csv");
 
         DijkstraSP dijkstraSP = new DijkstraSP();
-        dijkstraSP.parse(graph, 77);
-        ArrayList<Integer> suggestedPath = dijkstraSP.pathTo(67);
+        dijkstraSP.parse(graph, 50);
+        ArrayList<Integer> suggestedPath = dijkstraSP.pathTo(94);
+        System.out.println("the suggested shortest path(distance) is:");
         System.out.println(suggestedPath);
         for (Integer stopId : suggestedPath) {
             Map stopDetail = stopMap.get(stopId);
